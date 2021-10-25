@@ -32,6 +32,19 @@ export class PermisssionsService {
       console.log(er);
     }
   }
+  async getPermissionByUserDoc(doc: number, user: string) {
+    try {
+      let manager = getManager();
+      return await manager.query(`
+        SELECT * FROM tbl_permissions WHERE permission_id IN
+(SELECT permission_id FROM tbl_doc_role_permission WHERE role_id=
+ (SELECT role_id FROM tbl_emp_role_branch WHERE employee_id ='${user}')
+ AND document_id=${doc}
+)`);
+    } catch (er) {
+      console.log(er);
+    }
+  }
   async eligiblityCheck(doc: number, role: number) {
     try {
       let manager = getManager();

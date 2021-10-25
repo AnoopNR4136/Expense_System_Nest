@@ -40,6 +40,16 @@ export class PermisssionsController {
     return this.permisssionsService.getPermissionByRoleDoc(doc, role);
   }
 
+  @Get('get_permission_by_user_doc/:user/:doc')
+  getPermissionByUserDoc(
+    @Param('user') user: string,
+    @Param('doc') doc: number,
+  ) {
+    console.log('doc:', doc, 'user', user);
+
+    return this.permisssionsService.getPermissionByUserDoc(doc, user);
+  }
+
   @Get('eligiblityCheck/:role/:doc')
   eligiblityCheck(@Param('role') role: number, @Param('doc') doc: number) {
     console.log('doc:', doc, 'role', role);

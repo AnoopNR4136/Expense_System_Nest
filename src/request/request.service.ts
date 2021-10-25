@@ -1,28 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getManager } from 'typeorm';
-import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
-import { RequestDetails, Requests } from './entities/request.entity';
+import { CreateRequestDto, RequestDetailsDTO } from './dto/create-request.dto';
+import {
+  CompleteUpdateStatus,
+  UpdateRequestDto,
+} from './dto/update-request.dto';
+import {
+  RequestDetails,
+  RequestDetailsActions,
+  Requests,
+} from './entities/request.entity';
 
 @Injectable()
 export class RequestService {
   constructor(
     @InjectRepository(Requests)
     private readonly requestService: Repository<Requests>,
+    @InjectRepository(RequestDetailsActions)
+    private readonly requestDetailsActionsService: Repository<RequestDetailsActions>,
     @InjectRepository(RequestDetails)
     private readonly requestDetailsService: Repository<RequestDetails>,
   ) {}
 
   async postRequest(createRequestDto: CreateRequestDto) {
-    let manager = getManager();
-    let result = await manager.query(
-      `
-  SELECT 
+    try {
+      let manager = getManager();
+      let result = await manager.query(
+        `
+        SELECT 
         tbl_workflow.work_flow_id 
   FROM 
         tbl_workflow 
-INNER JOIN 
+  INNER JOIN 
         tbl_workflow_details 
 ON tbl_workflow_details.work_flow_id = tbl_workflow.work_flow_id
 WHERE 
@@ -30,18 +40,18 @@ WHERE
 	          (SELECT 
                 role_id 
             FROM tbl_emp_role_branch 
-		          WHERE employee_id='EMP_2739510000')
-AND tbl_workflow.document_id=8
-AND tbl_workflow_details.to_role=8 
+		          WHERE employee_id='${createRequestDto.employee_id}')
+AND tbl_workflow.document_id='${createRequestDto.document_id}'
+AND tbl_workflow_details.to_role=(SELECT role_id FROM tbl_emp_role_branch WHERE employee_id ='${createRequestDto.to_employee_id}' )
 AND tbl_workflow_details.status='Start'
-
   `,
-    );
-    let work_flow_id = result[0].work_flow_id;
-    console.log(result);
+      );
+      let work_flow_id = result[0].work_flow_id;
+      console.log(result);
 
-    let { employee_id, document_id, notes, to_employee_id } = createRequestDto;
-    try {
+      let { employee_id, document_id, notes, to_employee_id } =
+        createRequestDto;
+
       let reqData = await this.requestService.save({
         employee_id,
         document_id,
@@ -52,21 +62,149 @@ AND tbl_workflow_details.status='Start'
       await this.requestDetailsService.save({
         request_id: reqData.request_id,
         to_employee_id: to_employee_id,
+        from_employee_id: employee_id, //Posted user
+        notes,
       });
     } catch (error) {}
   }
 
-  findAll() {
-    return `This action returns all request`;
-  }
-
-  pendingRequest(id: string) {
+  async postRequestDetails(createRequestDetailsDto: RequestDetailsDTO) {
     try {
+      let {
+        requestdetailsID,
+        permission_id,
+        request_id,
+        from_employee_id,
+        to_employee_id,
+        notes,
+        action,
+      } = createRequestDetailsDto;
+      let manager = getManager();
+      let isTransfer = 0;
+
+      if (action != 0) {
+        let result = await this.requestDetailsActionsService.save({
+          action_id: action,
+          request_details_id: requestdetailsID,
+        });
+      } else {
+        isTransfer = 1;
+        let result = await this.requestDetailsService.save({
+          request_id,
+          from_employee_id,
+          to_employee_id,
+          notes,
+        });
+      }
+      await manager.query(
+        `
+UPDATE tbl_request_details SET permission_id='${permission_id}',transfer_status='${isTransfer}' WHERE request_details_id='${requestdetailsID}' 
+
+`,
+      );
     } catch (error) {}
   }
 
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${id} request`;
+  async ViewAllPendigRequest(id) {
+    try {
+      let manager = getManager();
+      return await manager.query(
+        `
+SELECT * FROM tbl_request_details
+INNER JOIN tbl_employees ON tbl_employees.employee_id = tbl_request_details.from_employee_id
+INNER JOIN tbl_request ON tbl_request.request_id = tbl_request_details.request_id
+INNER JOIN tbl_document ON tbl_document.document_id = tbl_request.document_id							
+WHERE to_employee_id ='${id}' AND tbl_request_details.permission_id='0'
+`,
+      );
+    } catch (error) {}
+  }
+
+  async ViewAllOnWorkRequest(id) {
+    try {
+      let manager = getManager();
+      return await manager.query(
+        `
+SELECT * FROM tbl_request_details
+INNER JOIN tbl_employees ON tbl_employees.employee_id = tbl_request_details.from_employee_id
+INNER JOIN tbl_request ON tbl_request.request_id = tbl_request_details.request_id
+INNER JOIN tbl_document ON tbl_document.document_id = tbl_request.document_id							
+WHERE to_employee_id ='${id}' AND tbl_request_details.transfer_status='0' AND tbl_request_details.permission_id!='0'
+`,
+      );
+    } catch (error) {}
+  }
+
+  async getNextEmpOfWorkFlow(
+    permissionid: number,
+    employee_id: string,
+    workflowID: number,
+  ) {
+    try {
+      let manager = getManager();
+
+      let result = await manager.query(
+        `
+        SELECT tbl_employees.employee_name,tbl_employees.employee_id FROM tbl_employees 
+INNER JOIN tbl_emp_role_branch ON tbl_employees.employee_id = tbl_emp_role_branch.employee_id
+WHERE tbl_emp_role_branch.role_id IN (SELECT to_role FROM tbl_workflow_details WHERE work_flow_id=${workflowID} AND from_role IN (SELECT role_id FROM tbl_emp_role_branch WHERE employee_id='${employee_id}')
+AND permission_id=${permissionid})
+      `,
+      );
+      console.log(result);
+
+      if (result.length) {
+        return {
+          type: 'Employee',
+          details: result,
+        };
+      } else {
+        let isComplete = await manager.query(
+          `
+SELECT status FROM tbl_workflow_details 
+WHERE work_flow_id=${workflowID} AND permission_id=${permissionid} 
+AND from_role IN 
+(SELECT role_id FROM tbl_emp_role_branch WHERE employee_id='${employee_id}')
+
+
+
+`,
+        );
+
+        if (isComplete.length) {
+          return {
+            type: 'Complete',
+          };
+        } else {
+          let data = await manager.query(
+            `
+      SELECT * FROM tbl_actions
+          `,
+          );
+
+          return {
+            type: 'Acton',
+            details: data,
+          };
+        }
+      }
+    } catch (error) {}
+  }
+
+  async CompleteUpdate(updateStatus: CompleteUpdateStatus) {
+    console.log('CompleteUpdate');
+    try {
+      let manager = getManager();
+      await manager.query(
+        `
+UPDATE tbl_request SET status=${updateStatus.status} WHERE request_id = ${updateStatus.id}
+
+`,
+      );
+      await manager.query(`
+      UPDATE tbl_request_details SET permission_id =${updateStatus.status} ,whole_status=1 WHERE request_id = ${updateStatus.id}
+      `);
+    } catch (error) {}
   }
 
   remove(id: number) {

@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { RequestService } from './request.service';
-import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
+import { CreateRequestDto, RequestDetailsDTO } from './dto/create-request.dto';
+import {
+  CompleteUpdateStatus,
+  UpdateRequestDto,
+} from './dto/update-request.dto';
 
 @Controller('request')
 export class RequestController {
@@ -11,20 +22,39 @@ export class RequestController {
   postRequest(@Body() createRequestDto: CreateRequestDto) {
     return this.requestService.postRequest(createRequestDto);
   }
-
-  @Get()
-  findAll() {
-    return this.requestService.findAll();
+  @Post('post_request_details')
+  postRequestDetails(@Body() createRequestDetailsDto: RequestDetailsDTO) {
+    return this.requestService.postRequestDetails(createRequestDetailsDto);
   }
 
-  @Get('pending_request/:id')
-  pendingRequest(@Param('id') id: string) {
-    return this.requestService.pendingRequest(id);
+  @Get('get_all_pending_request/:id')
+  ViewAllPendigRequest(@Param('id') id: string) {
+    return this.requestService.ViewAllPendigRequest(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequestDto: UpdateRequestDto) {
-    return this.requestService.update(+id, updateRequestDto);
+  @Get('get_all_on_work_request/:id')
+  ViewAllOnWorkRequest(@Param('id') id: string) {
+    return this.requestService.ViewAllOnWorkRequest(id);
+  }
+
+  @Get('get_next_emp_of_work_flow/:permissionid/:employee_id/:workflowID')
+  getNextEmpOfWorkFlow(
+    @Param('permissionid') permissionid: number,
+    @Param('employee_id') employee_id: string,
+    @Param('workflowID') workflowID: number,
+  ) {
+    return this.requestService.getNextEmpOfWorkFlow(
+      permissionid,
+      employee_id,
+      workflowID,
+    );
+  }
+
+  @Post('CompleteUpdate')
+  CompleteUpdate(@Body() updateStatus: CompleteUpdateStatus) {
+    console.log('CompleteUpdate');
+
+    return this.requestService.CompleteUpdate(updateStatus);
   }
 
   @Delete(':id')

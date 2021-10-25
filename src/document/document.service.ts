@@ -33,6 +33,17 @@ export class DocumentService {
       `);
     } catch (error) {}
   }
+  async getDocByUserId(id: string) {
+    const manager = getManager();
+    return await manager.query(`
+    SELECT * FROM tbl_document 
+	      INNER JOIN tbl_role_doc
+	      ON tbl_document.document_id = tbl_role_doc.document_id
+      WHERE role_id=(SELECT role_id FROM tbl_emp_role_branch WHERE employee_id ='${id}')
+      
+      
+      `);
+  }
 
   update(id: number, updateDocumentDto: UpdateDocumentDto) {
     return `This action updates a #${id} document`;

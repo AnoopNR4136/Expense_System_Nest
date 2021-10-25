@@ -5,4 +5,6 @@ export class Permisssions {
   permission_id: number;
   @Column()
   permission_name: string;
+  @Column()
+  permission_after: string;
 }

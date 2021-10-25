@@ -30,6 +30,11 @@ export class DocumentController {
     return this.documentService.getDocByRoleId(+id);
   }
 
+  @Get('get_doc_by_role_user/:id')
+  getDocByUserId(@Param('id') id: string) {
+    return this.documentService.getDocByUserId(id);
+  }
+
   @Patch(':id')
   update(
     @Param('id') id: string,

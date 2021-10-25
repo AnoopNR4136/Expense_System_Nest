@@ -32,13 +32,34 @@ export class RequestDetails {
   request_id: number;
 
   @Column()
+  from_employee_id: string;
+
+  @Column({ default: 0 })
   to_employee_id: string;
 
   @Column({ nullable: true })
   notes: string;
 
   @Column({ default: 0 })
-  status: number;
+  permission_id: number;
+  @Column({ default: 0 })
+  whole_status: number; //0 on work 1 complete
+
+  @Column({ default: 0 })
+  transfer_status: number; //0 hold 1 transfer
+  @CreateDateColumn()
+  update_date: Date;
+  @UpdateDateColumn()
+  posted_date: Date;
+}
+@Entity('tbl_request_details_actions')
+export class RequestDetailsActions {
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column()
+  request_details_id: number;
+  @Column()
+  action_id: number;
   @CreateDateColumn()
   update_date: Date;
   @UpdateDateColumn()

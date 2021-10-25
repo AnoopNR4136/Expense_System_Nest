@@ -16,9 +16,10 @@ import { WorkflowModule } from './workflow/workflow.module';
 import { RequestsModule } from './requests/requests.module';
 import { QueryModuleModule } from './query-module/query-module.module';
 import { RequestModule } from './request/request.module';
+import { ActionsModule } from './actions/actions.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeOrmConfig), BranchModule, RoleModule, EmployeesModule, DocumentModule, StateTypeModule, PermisssionsModule, DocumentPermissionModule, DocumentRolePermissionModule, RoleDocumentModule, WorkflowModule, RequestsModule, QueryModuleModule, RequestModule],
+  imports: [TypeOrmModule.forRoot(typeOrmConfig), BranchModule, RoleModule, EmployeesModule, DocumentModule, StateTypeModule, PermisssionsModule, DocumentPermissionModule, DocumentRolePermissionModule, RoleDocumentModule, WorkflowModule, RequestsModule, QueryModuleModule, RequestModule, ActionsModule],
   controllers: [AppController],
   providers: [AppService],
 })
