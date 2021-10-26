@@ -171,7 +171,7 @@ AND from_role IN
 `,
         );
 
-        if (isComplete.length) {
+        if (isComplete[0].status == 'Complete') {
           return {
             type: 'Complete',
           };
@@ -202,11 +202,15 @@ UPDATE tbl_request SET status=${updateStatus.status} WHERE request_id = ${update
 `,
       );
       await manager.query(`
-      UPDATE tbl_request_details SET permission_id =${updateStatus.status} ,whole_status=1 WHERE request_id = ${updateStatus.id}
+      UPDATE tbl_request_details SET whole_status=1 WHERE request_id = ${updateStatus.id}
+      `);
+
+      await manager.query(`
+      UPDATE tbl_request_details SET permission_id =${updateStatus.status} WHERE request_details_id = ${updateStatus.requestdetailsID}
       `);
     } catch (error) {}
   }
-
+  // ,
   remove(id: number) {
     return `This action removes a #${id} request`;
   }

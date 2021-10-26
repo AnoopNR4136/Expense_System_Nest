@@ -5,4 +5,5 @@ export class UpdateRequestDto extends PartialType(CreateRequestDto) {}
 export class CompleteUpdateStatus {
   id: number;
   status: number;
+  requestdetailsID: number;
 }
