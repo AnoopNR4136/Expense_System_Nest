@@ -25,9 +25,15 @@ export class EmployeesController {
     return this.employeesService.getAllEmployees();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.employeesService.findOne(+id);
+  @Get('get_employee_by_branch_and_role/:branch_id/:role_id')
+  getEmployeeByBranchAndRole(
+    @Param('branch_id') branch_id: string,
+    @Param('role_id') role_id: string,
+  ) {
+    return this.employeesService.getEmployeeByBranchAndRole(
+      +branch_id,
+      +role_id,
+    );
   }
 
   @Get('employee_documents_by_employee_id_for_post_work_flow/:id')

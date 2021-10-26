@@ -50,6 +50,20 @@ export class RoleService {
     //   );
     // } catch (error) {}
   }
+ async getRoleByEmpIdBranchId(empid: string, branchid: number) {
+    try {
+      let manager = getManager();
+     return await manager.query(
+        `
+       SELECT tbl_role.role_id,role_name FROM tbl_role
+INNER JOIN  tbl_emp_role_branch 
+ON tbl_emp_role_branch.role_id = tbl_role.role_id
+WHERE employee_id ='${empid}'
+AND branch_id =${branchid}    
+        `,
+      );
+    } catch (error) {}
+  }
 
   update(id: number, updateroleDto: UpdateRoleDto) {
     return `This action updates a #${id} role`;

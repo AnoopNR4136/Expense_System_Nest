@@ -25,9 +25,9 @@ export class BranchController {
     return this.branchService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.branchService.findOne(+id);
+  @Get('get_branch_by_employee_iD/:id')
+  getBranchByEmployeeID(@Param('id') id: string) {
+    return this.branchService.getBranchByEmployeeID(id);
   }
 
   @Patch(':id')

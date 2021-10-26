@@ -102,7 +102,9 @@ UPDATE tbl_request_details SET permission_id='${permission_id}',transfer_status=
 
 `,
       );
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async ViewAllPendigRequest(id) {
@@ -132,23 +134,33 @@ INNER JOIN tbl_document ON tbl_document.document_id = tbl_request.document_id
 WHERE to_employee_id ='${id}' AND tbl_request_details.transfer_status='0' AND tbl_request_details.permission_id!='0'
 `,
       );
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getNextEmpOfWorkFlow(
     permissionid: number,
     employee_id: string,
     workflowID: number,
+    role: number,
+    branch: number,
   ) {
     try {
       let manager = getManager();
 
       let result = await manager.query(
         `
-        SELECT tbl_employees.employee_name,tbl_employees.employee_id FROM tbl_employees 
+       SELECT * FROM tbl_employees WHERE employee_id IN
+(SELECT employee_id FROM tbl_emp_head WHERE  branch_id = ${branch}  AND employee_head_id='${employee_id}'   AND employee_id   IN(SELECT tbl_employees.employee_id FROM tbl_employees
 INNER JOIN tbl_emp_role_branch ON tbl_employees.employee_id = tbl_emp_role_branch.employee_id
 WHERE tbl_emp_role_branch.role_id IN (SELECT to_role FROM tbl_workflow_details WHERE work_flow_id=${workflowID} AND from_role IN (SELECT role_id FROM tbl_emp_role_branch WHERE employee_id='${employee_id}')
-AND permission_id=${permissionid})
+AND permission_id=${permissionid}))
+UNION
+ SELECT employee_head_id FROM tbl_emp_head WHERE branch_id = ${branch} AND employee_id='${employee_id}' AND employee_head_id IN(SELECT tbl_employees.employee_id FROM tbl_employees
+INNER JOIN tbl_emp_role_branch ON tbl_employees.employee_id = tbl_emp_role_branch.employee_id
+WHERE tbl_emp_role_branch.role_id IN (SELECT to_role FROM tbl_workflow_details WHERE work_flow_id=90733 AND from_role IN (SELECT role_id FROM tbl_emp_role_branch WHERE employee_id='${employee_id}')
+AND permission_id=${permissionid})))
       `,
       );
       console.log(result);

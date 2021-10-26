@@ -26,3 +26,21 @@ export class EmployeeBranchRole {
   @Column()
   branch_id: number;
 }
+
+@Entity('tbl_emp_head')
+export class EmployeeHeads {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  employee_id: string;
+
+  @Column()
+  employee_head_id: string; //from employee table
+
+  @Column()
+  role_id: number; //Head role
+
+  @Column()
+  branch_id: number;
+}

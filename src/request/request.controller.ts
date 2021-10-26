@@ -37,16 +37,20 @@ export class RequestController {
     return this.requestService.ViewAllOnWorkRequest(id);
   }
 
-  @Get('get_next_emp_of_work_flow/:permissionid/:employee_id/:workflowID')
+  @Get('get_next_emp_of_work_flow/:permissionid/:employee_id/:workflowID/:role/:branch')
   getNextEmpOfWorkFlow(
     @Param('permissionid') permissionid: number,
     @Param('employee_id') employee_id: string,
     @Param('workflowID') workflowID: number,
+    @Param('role') role: number,
+    @Param('branch') branch: number,
   ) {
     return this.requestService.getNextEmpOfWorkFlow(
       permissionid,
       employee_id,
       workflowID,
+      role,
+      branch,
     );
   }
 

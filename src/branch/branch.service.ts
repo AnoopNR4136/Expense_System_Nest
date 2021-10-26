@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, getManager } from 'typeorm';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { UpdateBranchDto } from './dto/update-branch.dto';
 import { Branch } from './entities/branch.entity';
@@ -25,8 +25,17 @@ export class BranchService {
     } catch (error) {}
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} branch`;
+  async getBranchByEmployeeID(id: string) {
+    try {
+      let manager = getManager();
+      return await manager.query(
+        `
+        SELECT tbl_branch.branch_id,branch_name FROM tbl_branch 
+INNER JOIN tbl_emp_role_branch ON tbl_branch.branch_id = tbl_emp_role_branch.branch_id
+WHERE employee_id ='${id}'
+        `,
+      );
+    } catch (error) {}
   }
 
   update(id: number, updateBranchDto: UpdateBranchDto) {

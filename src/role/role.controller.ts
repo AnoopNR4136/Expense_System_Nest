@@ -25,9 +25,12 @@ export class RoleController {
     return this.roleService.viewRole();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.roleService.findOne(+id);
+  @Get('get_role_by_empID_branch_id/:empid/:branchid')
+  getRoleByEmpIdBranchId(
+    @Param('empid') empid: string,
+    @Param('branchid') branchid: number,
+  ) {
+    return this.roleService.getRoleByEmpIdBranchId(empid, branchid);
   }
 
   @Patch(':id')

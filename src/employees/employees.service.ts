@@ -3,7 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { getManager, Repository } from 'typeorm';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
-import { Employee, EmployeeBranchRole } from './entities/employee.entity';
+import {
+  Employee,
+  EmployeeBranchRole,
+  EmployeeHeads,
+} from './entities/employee.entity';
 
 @Injectable()
 export class EmployeesService {
@@ -12,6 +16,8 @@ export class EmployeesService {
     private readonly employeeRoleBranchRepository: Repository<EmployeeBranchRole>,
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+    @InjectRepository(EmployeeHeads)
+    private readonly employeeHeadsRepository: Repository<EmployeeHeads>,
   ) {}
   async createEmployee(createEmployeeDto: CreateEmployeeDto) {
     try {
@@ -19,6 +25,9 @@ export class EmployeesService {
 
       await this.employeeRoleBranchRepository.save(emp_branch_role);
 
+      if (createEmployeeDto.emp_heads.length) {
+        await this.employeeHeadsRepository.save(createEmployeeDto.emp_heads);
+      }
       return await this.employeeRepository.save({
         employee_name,
         employee_id,
@@ -59,8 +68,21 @@ export class EmployeesService {
     } catch (error) {}
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} employee`;
+  async getEmployeeByBranchAndRole(branch_id: number, role_id: number) {
+    try {
+      let manager = getManager();
+      return await manager.query(
+        `
+        SELECT * FROM tbl_employees 
+INNER JOIN tbl_emp_role_branch
+ON tbl_employees.employee_id = tbl_emp_role_branch.employee_id
+WHERE tbl_emp_role_branch.branch_id = ${branch_id}
+AND tbl_emp_role_branch.role_id=${role_id}
+        
+        
+        `,
+      );
+    } catch (error) {}
   }
 
   update(id: number, updateEmployeeDto: UpdateEmployeeDto) {

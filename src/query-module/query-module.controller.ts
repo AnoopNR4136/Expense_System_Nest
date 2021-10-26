@@ -20,12 +20,19 @@ export class QueryModuleController {
     return this.queryModuleService.create(createQueryModuleDto);
   }
 
-  @Get('get_employee_for_work_flow/:docID/:empID')
+  @Get('get_employee_for_work_flow/:docID/:empID/:role/:branch')
   getEmployeeForWorkFlow(
     @Param('docID') docID: number,
     @Param('empID') empID: string,
+    @Param('role') role: number,
+    @Param('branch') branch: number,
   ) {
-    return this.queryModuleService.getEmployeeForWorkFlow(docID, empID);
+    return this.queryModuleService.getEmployeeForWorkFlow(
+      docID,
+      empID,
+      role,
+      branch,
+    );
   }
 
   @Get(':id')
